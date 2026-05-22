@@ -1,7 +1,7 @@
 # Realmz Registration Helper (Classic)
 
 Small preservation helper for the classic Mac Realmz main application
-registration prompt. Tested with 1.22, 1.54, and 3.2.
+registration prompt. Should work for any pre-5.0 (1.x-4.x) versions.
 
 
 ## Web App
