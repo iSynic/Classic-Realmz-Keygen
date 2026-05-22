@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Realmz Registration Helper (Classic)</title>
+  <link rel="icon" href="assets/app-icon.ico">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef1ed;
+      --panel: #fbfaf5;
+      --ink: #171916;
+      --muted: #5a6256;
+      --line: #c7cdbf;
+      --field: #ffffff;
+      --accent: #1f6f78;
+      --accent-strong: #164f56;
+      --danger: #9c1d22;
+      --shadow: 0 20px 50px rgba(21, 26, 21, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0)),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    main {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
+    }
+
+    .tool {
+      width: min(100%, 460px);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .mark {
+      width: 48px;
+      height: 48px;
+      image-rendering: pixelated;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.15;
+      font-weight: 760;
+      color: #121512;
+    }
+
+    .meta {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 0.9rem;
+      font-weight: 650;
+      color: #293026;
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--field);
+      color: var(--ink);
+      font: inherit;
+      font-size: 1rem;
+      padding: 10px 12px;
+      letter-spacing: 0;
+    }
+
+    input:focus {
+      outline: 3px solid rgba(31, 111, 120, 0.22);
+      border-color: var(--accent);
+    }
+
+    input[readonly] {
+      background: #f4f6f0;
+      font-weight: 750;
+    }
+
+    .error {
+      min-height: 20px;
+      color: var(--danger);
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 8px 10px;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    button:hover {
+      border-color: var(--accent-strong);
+    }
+
+    button.primary:hover {
+      background: var(--accent-strong);
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(31, 111, 120, 0.25);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 430px) {
+      .tool {
+        padding: 18px;
+      }
+
+      header {
+        grid-template-columns: 40px 1fr;
+      }
+
+      .mark {
+        width: 40px;
+        height: 40px;
+      }
+
+      .actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="tool" aria-labelledby="title">
+      <header>
+        <img class="mark" src="assets/app-icon.ico" alt="">
+        <div>
+          <h1 id="title">Realmz Registration Helper (Classic)</h1>
+          <p class="meta">Main app code</p>
+        </div>
+      </header>
+
+      <form id="helper-form" novalidate>
+        <label for="serial">Serial number
+          <input id="serial" name="serial" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </label>
+
+        <label for="code">Registration code
+          <input id="code" name="code" readonly>
+        </label>
+
+        <div class="error" id="error" role="status" aria-live="polite"></div>
+
+        <div class="actions">
+          <button class="primary" type="submit">Generate</button>
+          <button id="copy" type="button">Copy</button>
+          <button id="clear" type="button">Clear</button>
+          <button id="close" type="button">Close</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const SERIAL_BIT_8_MASK = 0x00800000n;
+
+    const form = document.querySelector("#helper-form");
+    const serialInput = document.querySelector("#serial");
+    const codeInput = document.querySelector("#code");
+    const errorOutput = document.querySelector("#error");
+    const copyButton = document.querySelector("#copy");
+    const clearButton = document.querySelector("#clear");
+    const closeButton = document.querySelector("#close");
+
+    function normalizeSerialText(text) {
+      const stripped = text.trim();
+      if (!stripped) {
+        throw new Error("Enter a serial number.");
+      }
+      if (stripped.startsWith("+") || stripped.startsWith("-")) {
+        throw new Error("Enter a positive serial number without a sign.");
+      }
+
+      const normalized = stripped.replace(/[\s-]/g, "");
+      if (!normalized) {
+        throw new Error("Enter a serial number.");
+      }
+      if (!/^[0-9]+$/.test(normalized)) {
+        throw new Error("Serial numbers can contain only digits, spaces, and dashes.");
+      }
+      return normalized;
+    }
+
+    function parseSerial(text) {
+      const serial = BigInt(normalizeSerialText(text));
+      if (serial <= 0n) {
+        throw new Error("Enter a positive serial number.");
+      }
+      return serial;
+    }
+
+    function registrationCodeForSerial(serial) {
+      const serialForCheck = serial | SERIAL_BIT_8_MASK;
+      return ((serialForCheck / 24n) + 24n) * 15n - 256n;
+    }
+
+    function showError(message) {
+      errorOutput.textContent = message;
+      codeInput.value = "";
+    }
+
+    function generate() {
+      try {
+        const code = registrationCodeForSerial(parseSerial(serialInput.value));
+        codeInput.value = code.toString();
+        errorOutput.textContent = "";
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      generate();
+    });
+
+    copyButton.addEventListener("click", async () => {
+      if (!codeInput.value) {
+        showError("Generate a registration code first.");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(codeInput.value);
+        errorOutput.textContent = "";
+      } catch (_error) {
+        codeInput.focus();
+        codeInput.select();
+      }
+    });
+
+    clearButton.addEventListener("click", () => {
+      serialInput.value = "";
+      codeInput.value = "";
+      errorOutput.textContent = "";
+      serialInput.focus();
+    });
+
+    closeButton.addEventListener("click", () => {
+      window.close();
+    });
+  </script>
+</body>
+</html>
