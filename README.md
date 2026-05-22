@@ -1,7 +1,7 @@
 # Realmz Registration Helper (Classic)
 
-Small preservation helper for the classic Mac Realmz 1.5.4 main application
-registration prompt.
+Small preservation helper for the classic Mac Realmz main application
+registration prompt. Tested with 1.22, 1.54, and 3.2.
 
 Realmz has been released non-commercially by Tim Phillips. This helper is
 intended for preserving and running the old classic Mac release; it does not
